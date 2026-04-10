@@ -7,7 +7,7 @@ int determineLength(int argc, char* argv[])
   int len = 0;
 	for (int i = 1; i < argc; i++)
 	{
-		len += strlen(argv[i]);
+		len += strlen(argv[i]) + 1; // Room for the slashes
 	}
 	return len;
 }
@@ -17,6 +17,7 @@ void joinArguments(int argc, char* argv[], char* joined)
 	for (int i = 1; i < argc; i++)
 	{
 		strcat(joined, argv[i]);
+		strcat(joined, "/");
 	}
 }
 
@@ -26,7 +27,7 @@ int main(int argc, char* argv[])
 	// Determine (__) length
 	int len = determineLength(argc, argv);
 	// Join arguments with slashes
-	char joined[len];
+	char* joined = calloc(len + 1, sizeof(char));
 	joinArguments(argc, argv, joined);
 	printf("Joined: %s\n", joined);
 }
