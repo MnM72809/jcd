@@ -3,6 +3,8 @@ project(jcd C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(jcd src/main.c)
+add_executable(jcd src/main.c
+                   src/obj_manipulation.c
+			   	   src/algorithms.c)
 
 install(TARGETS jcd DESTINATION bin)
