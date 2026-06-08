@@ -9,6 +9,7 @@
 #include "obj_manipulation.h"
 #include "algorithms.h"
 
+#define ALLOWED_SCORE_DIVISOR 3
 
 int determineLength(int argc, char* argv[])
 {
@@ -57,24 +58,48 @@ int main(int argc, char* argv[])
 
 	// Loop through inputs
 	for (int i = 0; i < splitArray.count; i++) {
+		/*printf("--> Looping through inputs: %s\n", splitArray.array[i]);*/
 		struct dirent **namelist;
 		int n;
 
 		n = scandir(path, &namelist, NULL, NULL); // not using alphasort because the list doesn't need to be sorted
-		unsigned scores[n];
+		if (n < 0) {
+			perror("scandir");
+			exit(1);
+		}
+		/*printf("--> after scandir\n");*/
+		unsigned *scores = malloc(n * sizeof(unsigned));
+		if (scores == NULL) {
+			perror("Failed to allocate memory");
+			exit(1);
+		}
+		memset(scores, -1, n * sizeof(unsigned)); // memset is safe here cause -1 is 0xFF.. something (UINT_MAX)
 		for (int j = 0; j < n; j++)
 		{
 			if (strcmp(namelist[j]->d_name, ".") == 0 || strcmp(namelist[j]->d_name, "..") == 0)
 				continue; // Skip "." and ".."
-			/*printf("value: %s\n", namelist[j]->d_name);*/
+			if (namelist[j]->d_type != DT_DIR)
+				continue; // Skip non-directories
+
+			/*printf("==> checking: %s\n", namelist[j]->d_name);*/
+
+			// Convert to lowercase
 			int lower_length = strlen(namelist[j]->d_name);
-			char lowercase[lower_length];
+			char lowercase[lower_length + 1];
+			lowercase[lower_length] = '\0';
 			for (int k = 0; k < lower_length; k++)
 			{
 				lowercase[k] = tolower(namelist[j]->d_name[k]);
 			}
+
+			// Store the entry's score
 			scores[j] = damerauLevenshtein(lowercase, splitArray.array[i], 256);
 		}
+		/*printf("--> got scores[");*/
+		/*for (int j = 0; j < n-2; j++) {*/
+			/*printf("%u, ", scores[j]);*/
+		/*}*/
+		/*printf("%u]\n", scores[n-1]);*/
 
 		unsigned lowest = -1; // underflow uint
 		int lowest_index = -1;
@@ -86,23 +111,29 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		printf("Lowest score: %u; index: %d; value: %s\n", lowest, lowest_index, namelist[lowest_index]->d_name);
+		if (lowest == -1 || lowest > (strlen(namelist[lowest_index]->d_name) / ALLOWED_SCORE_DIVISOR))
+		{
+			printf("no match found for %s, skipping\n", splitArray.array[i]);
+			printf("score: %u, allowed: %u\n", lowest, strlen(namelist[lowest_index]->d_name) / ALLOWED_SCORE_DIVISOR);
+			// TODO: handle no match found properly
+		}
+		else {
+			strncat(path, "/", PATH_MAX - strlen(path) - 1);
+			strncat(path, namelist[lowest_index]->d_name, PATH_MAX - strlen(path) - 1);
+		}
 
-		strncat(path, "/", PATH_MAX - strlen(path) - 1);
-		strncat(path, namelist[lowest_index]->d_name, PATH_MAX - strlen(path) - 1);
+		printf("-> Lowest score: %u, value: %s\n", lowest, namelist[lowest_index]->d_name);
 
-		// TODO: cleanup namelist
+		for (int j = 0; j < n; j++) {
+			free(namelist[j]);
+		}
+		free(namelist);
+		free(scores);
 	}
 
 
-	/*const char* str1 = splitArray.array[0];*/
-	/*const char* str2 = splitArray.array[1];*/
-	/*unsigned distance = damerauLevenshtein(str1, str2, 256);*/
-	/*printf("distance: %d\n", distance);*/
-	printf("path: %s\n", path);
+	printf("%s\n", path);
 
 	// TODO: Cleanup splitArray
 	// TODO: Cleanup namelist
-
-	// TODO: search for segfaults (they do appear)
 }
