@@ -49,16 +49,13 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	/*printf("cwd: %s\n", path);*/
 	for (int i = 0; i < splitArray.count; i++) {
-		printf("> %s\n", splitArray.array[i]);
 		for (int j = 0; j < strlen(splitArray.array[i]); j++)
 			splitArray.array[i][j] = tolower(splitArray.array[i][j]);
 	}
 
 	// Loop through inputs
 	for (int i = 0; i < splitArray.count; i++) {
-		/*printf("--> Looping through inputs: %s\n", splitArray.array[i]);*/
 		struct dirent **namelist;
 		int n;
 
@@ -67,7 +64,7 @@ int main(int argc, char* argv[])
 			perror("scandir");
 			exit(1);
 		}
-		/*printf("--> after scandir\n");*/
+
 		unsigned *scores = malloc(n * sizeof(unsigned));
 		if (scores == NULL) {
 			perror("Failed to allocate memory");
@@ -81,7 +78,6 @@ int main(int argc, char* argv[])
 			if (namelist[j]->d_type != DT_DIR)
 				continue; // Skip non-directories
 
-			/*printf("==> checking: %s\n", namelist[j]->d_name);*/
 
 			// Convert to lowercase
 			int lower_length = strlen(namelist[j]->d_name);
@@ -95,11 +91,6 @@ int main(int argc, char* argv[])
 			// Store the entry's score
 			scores[j] = damerauLevenshtein(lowercase, splitArray.array[i], 256);
 		}
-		/*printf("--> got scores[");*/
-		/*for (int j = 0; j < n-2; j++) {*/
-			/*printf("%u, ", scores[j]);*/
-		/*}*/
-		/*printf("%u]\n", scores[n-1]);*/
 
 		unsigned lowest = -1; // underflow uint
 		int lowest_index = -1;
@@ -114,7 +105,7 @@ int main(int argc, char* argv[])
 		if (lowest == -1 || lowest > (strlen(namelist[lowest_index]->d_name) / ALLOWED_SCORE_DIVISOR))
 		{
 			printf("no match found for %s, skipping\n", splitArray.array[i]);
-			printf("score: %u, allowed: %u\n", lowest, strlen(namelist[lowest_index]->d_name) / ALLOWED_SCORE_DIVISOR);
+			/*printf("score: %u, allowed: %u\n", lowest, strlen(namelist[lowest_index]->d_name) / ALLOWED_SCORE_DIVISOR);*/
 			// TODO: handle no match found properly
 		}
 		else {
@@ -122,7 +113,7 @@ int main(int argc, char* argv[])
 			strncat(path, namelist[lowest_index]->d_name, PATH_MAX - strlen(path) - 1);
 		}
 
-		printf("-> Lowest score: %u, value: %s\n", lowest, namelist[lowest_index]->d_name);
+		/*printf("-> Lowest score: %u, value: %s\n", lowest, namelist[lowest_index]->d_name);*/
 
 		for (int j = 0; j < n; j++) {
 			free(namelist[j]);
