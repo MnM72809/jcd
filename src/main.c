@@ -148,6 +148,11 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
+	if (strcmp(argv[2], "-") == 0) {
+		printf("-\n");
+		exit(0);
+	}
+
 	char path[PATH_MAX];
 	run(argc, argv, path);
 	printf("%s\n", path);
