@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <stdbool.h>
 #include <limits.h>
 #include <dirent.h>
 
@@ -26,14 +27,25 @@ void run(int argc, char* argv[], char path[])
 		return;
 	}
 
+	bool relative = true;
+	if (argv[2][0] == '/')
+	{
+		relative = false;
+	}
+
 	// Exclude the program name from splitArray
 	charArray splitArray = splitToSegments(argc - 2, &argv[2]);
 
-	// Store cwd in path
-	if (getcwd(path, PATH_MAX) == NULL)
-	{
-		perror("getcwd() error");
-		exit(1);
+	if (relative) {
+		// Store cwd in path
+		if (getcwd(path, PATH_MAX) == NULL)
+		{
+			perror("getcwd() error");
+			exit(1);
+		}
+	} else {
+		path[0] = '/';
+		path[1] = '\0';
 	}
 
 	// transform splitArray to lowercase
@@ -155,7 +167,7 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	if (strcmp(argv[2], "-") == 0) {
+	if (argc == 3 && strcmp(argv[2], "-") == 0) {
 		printf("-\n");
 		exit(0);
 	}
