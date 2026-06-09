@@ -12,36 +12,21 @@
 
 #define ALLOWED_SCORE_DIVISOR 3
 
-/*int determineLength(int argc, char* argv[])*/
-/*{*/
-  /*int len = 0;*/
-	/*for (int i = 1; i < argc; i++)*/
-	/*{*/
-		/*len += strlen(argv[i]) + 1; // Room for the slashes*/
-	/*}*/
-	/*return len;*/
-/*}*/
-
-/*void joinArguments(int argc, char* argv[], char* joined)*/
-/*{*/
-	/*for (int i = 1; i < argc; i++)*/
-	/*{*/
-		/*strcat(joined, argv[i]);*/
-		/*strcat(joined, "/");*/
-	/*}*/
-/*}*/
+void addToPath(char* path, char* s)
+{
+	strncat(path, "/", PATH_MAX - strlen(path) - 1);
+	strncat(path, s, PATH_MAX - strlen(path) - 1);
+}
 
 void run(int argc, char* argv[], char path[])
 {
 	// Print the home dir when no arguments are given
 	if (argc == 2) {
 		snprintf(path, PATH_MAX, "%s", getenv("HOME"));
-		/*printf("%s\n", getenv("HOME"));*/
 		return;
-		/*exit(0);*/
 	}
 
-	// Exclude the program name from the splitArray
+	// Exclude the program name from splitArray
 	charArray splitArray = splitToSegments(argc - 2, &argv[2]);
 
 	// Store cwd in path
@@ -51,6 +36,7 @@ void run(int argc, char* argv[], char path[])
 		exit(1);
 	}
 
+	// transform splitArray to lowercase
 	for (int i = 0; i < splitArray.count; i++) {
 		for (int j = 0; j < strlen(splitArray.array[i]); j++)
 			splitArray.array[i][j] = tolower(splitArray.array[i][j]);
@@ -58,6 +44,12 @@ void run(int argc, char* argv[], char path[])
 
 	// Loop through inputs
 	for (int i = 0; i < splitArray.count; i++) {
+		if (strcmp(splitArray.array[i], "..") == 0)
+		{
+			addToPath(path, "..");
+			continue; // Don't interpret "..", just add it
+		}
+
 		struct dirent **namelist;
 		int n;
 
@@ -75,8 +67,8 @@ void run(int argc, char* argv[], char path[])
 		memset(scores, -1, n * sizeof(unsigned)); // memset is safe here cause -1 is 0xFF.. something (UINT_MAX)
 		for (int j = 0; j < n; j++)
 		{
-			if (strcmp(namelist[j]->d_name, ".") == 0 || strcmp(namelist[j]->d_name, "..") == 0)
-				continue; // Skip "." and ".."
+			if (strcmp(namelist[j]->d_name, ".") == 0)
+				continue; // Skip "."
 			if (namelist[j]->d_type != DT_DIR)
 				continue; // Skip non-directories
 
@@ -106,13 +98,11 @@ void run(int argc, char* argv[], char path[])
 
 		if (lowest == -1 || lowest > (strlen(namelist[lowest_index]->d_name) / ALLOWED_SCORE_DIVISOR))
 		{
-			printf("jcd: no match found for %s, skipping\n", splitArray.array[i]);
-			/*printf("score: %u, allowed: %u\n", lowest, strlen(namelist[lowest_index]->d_name) / ALLOWED_SCORE_DIVISOR);*/
+			fprintf(stderr, "jcd: no match found for %s, skipping\n", splitArray.array[i]);
 			// TODO: handle no match found properly
 		}
 		else {
-			strncat(path, "/", PATH_MAX - strlen(path) - 1);
-			strncat(path, namelist[lowest_index]->d_name, PATH_MAX - strlen(path) - 1);
+			addToPath(path, namelist[lowest_index]->d_name);
 		}
 
 		/*printf("-> Lowest score: %u, value: %s\n", lowest, namelist[lowest_index]->d_name);*/
@@ -124,7 +114,11 @@ void run(int argc, char* argv[], char path[])
 		free(scores);
 	}
 
-	// TODO: Cleanup splitArray
+	for (int i = 0; i < splitArray.count; i++) {
+		free(splitArray.array[i]);
+	}
+	free(splitArray.array);
+
 	return;
 }
 
@@ -150,7 +144,7 @@ int main(int argc, char* argv[])
 	}
 
 	if (strcmp(argv[1], "cd") != 0) {
-		printf("Unknown command: %s\n", argv[2]);
+		printf("Unknown command: %s\n", argv[1]);
 		exit(1);
 	}
 
