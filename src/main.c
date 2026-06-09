@@ -124,10 +124,17 @@ void run(int argc, char* argv[], char path[])
 
 int main(int argc, char* argv[])
 {
-	if (argc < 2)
+	if (argc < 2 || strcmp(argv[1], "help") == 0)
 	{
-		// TODO: print help
-		printf("WIP\n");
+		printf("Usage: jcd [OPTIONS] <path>\n");
+		printf("\n");
+		printf("A fast way to navigate your filesystem.\n");
+		printf("\n");
+		printf("Options:\n");
+		printf("  help     Print this help message and exit.\n");
+		printf("  version  Print version information and exit.\n");
+		printf("  init     Print shell function initialization logic (use: 'eval \"$(jcd init)\")\n");
+		/*printf("  cd       Print directory to change to (used for shell function)\n");*/
 		exit(0);
 	}
 
