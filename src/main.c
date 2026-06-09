@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 
 	if (strcmp(argv[1], "version") == 0)
 	{
-		printf("Version: 0.0.2\n");
+		printf("Version: 1.0.0\n");
 		exit(0);
 	}
 
