@@ -8,42 +8,44 @@
 
 #include "obj_manipulation.h"
 #include "algorithms.h"
+#include "init.h"
 
 #define ALLOWED_SCORE_DIVISOR 3
 
-int determineLength(int argc, char* argv[])
-{
-  int len = 0;
-	for (int i = 1; i < argc; i++)
-	{
-		len += strlen(argv[i]) + 1; // Room for the slashes
-	}
-	return len;
-}
+/*int determineLength(int argc, char* argv[])*/
+/*{*/
+  /*int len = 0;*/
+	/*for (int i = 1; i < argc; i++)*/
+	/*{*/
+		/*len += strlen(argv[i]) + 1; // Room for the slashes*/
+	/*}*/
+	/*return len;*/
+/*}*/
 
-void joinArguments(int argc, char* argv[], char* joined)
-{
-	for (int i = 1; i < argc; i++)
-	{
-		strcat(joined, argv[i]);
-		strcat(joined, "/");
-	}
-}
+/*void joinArguments(int argc, char* argv[], char* joined)*/
+/*{*/
+	/*for (int i = 1; i < argc; i++)*/
+	/*{*/
+		/*strcat(joined, argv[i]);*/
+		/*strcat(joined, "/");*/
+	/*}*/
+/*}*/
 
-int main(int argc, char* argv[])
+void run(int argc, char* argv[], char path[])
 {
 	// Print the home dir when no arguments are given
-	if (argc == 1) {
-		printf("%s\n", getenv("HOME"));
-		exit(0);
+	if (argc == 2) {
+		snprintf(path, PATH_MAX, "%s", getenv("HOME"));
+		/*printf("%s\n", getenv("HOME"));*/
+		return;
+		/*exit(0);*/
 	}
 
 	// Exclude the program name from the splitArray
-	charArray splitArray = splitToSegments(argc - 1, &argv[1]);
+	charArray splitArray = splitToSegments(argc - 2, &argv[2]);
 
 	// Store cwd in path
-	char path[PATH_MAX];
-	if (getcwd(path, sizeof(path)) == NULL)
+	if (getcwd(path, PATH_MAX) == NULL)
 	{
 		perror("getcwd() error");
 		exit(1);
@@ -104,7 +106,7 @@ int main(int argc, char* argv[])
 
 		if (lowest == -1 || lowest > (strlen(namelist[lowest_index]->d_name) / ALLOWED_SCORE_DIVISOR))
 		{
-			printf("no match found for %s, skipping\n", splitArray.array[i]);
+			printf("jcd: no match found for %s, skipping\n", splitArray.array[i]);
 			/*printf("score: %u, allowed: %u\n", lowest, strlen(namelist[lowest_index]->d_name) / ALLOWED_SCORE_DIVISOR);*/
 			// TODO: handle no match found properly
 		}
@@ -122,9 +124,37 @@ int main(int argc, char* argv[])
 		free(scores);
 	}
 
-
-	printf("%s\n", path);
-
 	// TODO: Cleanup splitArray
-	// TODO: Cleanup namelist
+	return;
+}
+
+int main(int argc, char* argv[])
+{
+	if (argc < 2)
+	{
+		// TODO: print help
+		printf("WIP\n");
+		exit(0);
+	}
+
+	if (strcmp(argv[1], "init") == 0)
+	{
+		init();
+		exit(0);
+	}
+
+	if (strcmp(argv[1], "version") == 0)
+	{
+		printf("Version: 0.0.2\n");
+		exit(0);
+	}
+
+	if (strcmp(argv[1], "cd") != 0) {
+		printf("Unknown command: %s\n", argv[2]);
+		exit(1);
+	}
+
+	char path[PATH_MAX];
+	run(argc, argv, path);
+	printf("%s\n", path);
 }
