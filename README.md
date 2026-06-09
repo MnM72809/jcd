@@ -1,6 +1,7 @@
 # jcd - Fuzzy Directory Jumper
 
-> **⚠️ Work in Progress** - This project is still under active development. Features and APIs may change.
+<!-- Still a WIP but doesn't need to be explicitly said anymore because the basic features are there. -->
+<!-- > **⚠️ Work in Progress** - This project is still under active development. Features and APIs may change. -->
 
 A fast, lightweight C command-line tool for fuzzy directory navigation. Quickly jump to directories using partial, approximate directory names with intelligent fuzzy matching.
 
@@ -48,30 +49,39 @@ This installs `jcd` to `/usr/local/bin` by default.
 ### Basic Syntax
 
 ```bash
-jcd <directory_segment> [additional_segments...]
+j <directory_segment> [additional_segments...]
+```
+
+### Subcommands
+
+```bash
+jcd version # Displays version
+jcd help # Prints help
+jcd init # Prints initialization logic (use: 'eval "$(jcd init)" in .bashrc, .zshrc, ...)
 ```
 
 ### Examples
 
 ```bash
 # Navigate to a directory with fuzzy matching
-jcd Documents
+j Documents
 
 # Navigate multiple levels at once
-jcd downloads myproject
+j downloads myproject
+j downloads/myproject # Same effect
 
 # Typo tolerance
-jcd docuemnts    # Matches "Documents"
-jcd prgram       # Matches "program"
+j docuemnts    # Matches "Documents"
+j prgram       # Matches "program"
 ```
 
 ### Output
 
-`jcd` prints the full matched directory path to stdout. This allows it to be used in shell aliases:
+`j` prints the full matched directory path to stdout. This allows it to be used in shell aliases:
 
 ```bash
 # Add to your shell config (~/.bashrc, ~/.zshrc, etc.)
-alias j='cd "$(jcd)"'
+eval "$(jcd init)"
 
 # Usage
 j Documents  # Changes to the matching Documents directory
@@ -89,7 +99,6 @@ j Documents  # Changes to the matching Documents directory
 
 - Uses the Damerau-Levenshtein distance for fuzzy matching
 - Case-insensitive comparison
-- Skips hidden directories (`.` and `..`)
 - Only matches directories, not files
 
 ## Project Structure
@@ -101,6 +110,8 @@ src/
 ├── algorithms.h        # Algorithm declarations
 ├── obj_manipulation.c  # Utility functions for data structures
 └── obj_manipulation.h  # Data structure definitions
+└── init.c              # Initializes j function in shell
+└── init.h              # Init function definition
 ```
 
 ## Key Components
