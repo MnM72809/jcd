@@ -110,8 +110,13 @@ void run(int argc, char* argv[], char path[])
 
 		if (lowest == -1 || lowest > (strlen(namelist[lowest_index]->d_name) / ALLOWED_SCORE_DIVISOR))
 		{
-			fprintf(stderr, "jcd: no match found for %s, skipping\n", splitArray.array[i]);
-			// TODO: handle no match found properly
+			fprintf(stderr, "jcd: no match found for %s, stopping at:\n%s\n", splitArray.array[i], path);
+			for (int j = 0; j < n; j++) {
+				free(namelist[j]);
+			}
+			free(namelist);
+			free(scores);
+			break;
 		}
 		else {
 			addToPath(path, namelist[lowest_index]->d_name);
