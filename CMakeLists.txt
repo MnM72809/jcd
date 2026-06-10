@@ -8,6 +8,10 @@ add_executable(jcd src/main.c
 			   	   src/algorithms.c
 			       src/init.c)
 
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,relro,-z,now")
+endif()
+
 install(TARGETS jcd DESTINATION bin)
 
 # Must be at the very end of CMakeLists.txt
