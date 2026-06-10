@@ -11,8 +11,7 @@
 #include "init.h"
 #include "obj_manipulation.h"
 
-#define ALLOWED_SCORE_DIVISOR 3
-
+double allowed_score_divisor = 3;
 char *back_str = "..";
 
 void add_to_path(char *path, char *s)
@@ -64,7 +63,7 @@ void run(int argc, char *argv[], char path[])
     // Loop through inputs
     for (int i = 0; i < split_array.count; i++)
     {
-        if (strcmp(split_array.array[i], back_str) == 0)
+        if (strcmp(split_array.array[i], back_str) == 0 || strcmp(split_array.array[i], "..") == 0)
         {
             add_to_path(path, "..");
             continue; // Don't interpret "..", just add it
@@ -120,8 +119,8 @@ void run(int argc, char *argv[], char path[])
             }
         }
 
-        if (lowest == -1 ||
-            lowest > (strlen(namelist[lowest_index]->d_name) / ALLOWED_SCORE_DIVISOR))
+        if (lowest == -1 || (double)lowest > ((double)strlen(namelist[lowest_index]->d_name) /
+                                              allowed_score_divisor))
         {
             fprintf(stderr, "jcd: no match found for \"%s\", stopping at:\n%s\n",
                     split_array.array[i], path);
@@ -159,15 +158,25 @@ int main(int argc, char *argv[])
 {
     if (argc < 2 || strcmp(argv[1], "help") == 0)
     {
-        printf("Usage: jcd [OPTIONS] <path>\n");
+        printf("Usage: jcd <action> [OPTIONS]\n");
         printf("\n");
         printf("A fast way to navigate your filesystem.\n");
+        printf("Add 'eval \"$(jcd init [OPTIONS])\"'\n");
+        printf("to .bashrc or .zshrc to initialize\n");
         printf("\n");
-        printf("Options:\n");
+        printf("Actions:\n");
         printf("  help     Print this help message and exit.\n");
         printf("  version  Print version information and exit.\n");
-        printf(
-            "  init     Print shell function initialization logic (use: 'eval \"$(jcd init)\")\n");
+        printf("  init     Print shell function initialization logic.\n");
+        printf("\n");
+        printf("init options (used with 'jcd init'):\n");
+        printf("  -a <alias>    Set the shell function name (default: j).\n");
+        printf("  -b <backstr>  Set string to use as an alias for \"..\"\n");
+        printf("                to navigate one directory level up.\n");
+        printf("  -d <divisor>  Set the divisor for the allowed score threshold (default: 3.0).\n");
+        printf(" 			    A lower divisor means stricter matching, a higher divisor means\n");
+        printf("                looser matching.\n");
+        printf("\n");
         exit(0);
     }
 
@@ -179,7 +188,7 @@ int main(int argc, char *argv[])
 
     if (strcmp(argv[1], "version") == 0)
     {
-        printf("Version: 1.0.2\n");
+        printf("Version: 1.0.3\n");
         exit(0);
     }
 
@@ -206,6 +215,20 @@ int main(int argc, char *argv[])
             exit(1);
         }
         back_str = back_str_env;
+    }
+
+    char *allowed_score_divisor_env = getenv("JCD_ALLOWED_SCORE_DIVISOR");
+    if (allowed_score_divisor_env != NULL && strlen(allowed_score_divisor_env) != 0)
+    {
+        // Convert to int
+        char *endptr;
+        double val = strtod(allowed_score_divisor_env, &endptr);
+        if (*endptr != '\0' || val <= 0)
+        {
+            fprintf(stderr, "Error: JCD_ALLOWED_SCORE_DIVISOR must be a positive number.\n");
+            exit(1);
+        }
+        allowed_score_divisor = val;
     }
 
     char path[PATH_MAX];
