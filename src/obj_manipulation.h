@@ -1,8 +1,10 @@
 #pragma once
+#include <stdlib.h>
 
-typedef struct {
-  char** array;
-  size_t count;
+typedef struct
+{
+    char **array;
+    size_t count;
 } charArray;
 
-charArray splitToSegments(size_t inputCount, char** inputArray);
+charArray split_to_segments(size_t input_count, char **input_array);

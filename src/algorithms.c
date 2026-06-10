@@ -11,7 +11,7 @@
 
 // Source: https://gist.github.com/Rostepher/818fd0ce41d0c18154ae
 
-static void print_matrix(unsigned **matrix, size_t m_rows, size_t m_cols);
+// static void print_matrix(unsigned **matrix, size_t m_rows, size_t m_cols);
 
 /**
  *  Calculates and returns the Damerau-Levenshtein distance of two non NULL
@@ -23,9 +23,7 @@ static void print_matrix(unsigned **matrix, size_t m_rows, size_t m_cols);
  *
  *  @returns Damerau-Levenshtein distance of str1 and str2
  */
-unsigned damerauLevenshtein(const char *str1,
-                             const char *str2,
-                             const unsigned alpha_size)
+unsigned damerau_levenshtein(const char *str1, const char *str2, const unsigned ALPHA_SIZE)
 {
     // strings cannot be NULL
     assert(str1 != NULL);
@@ -45,58 +43,59 @@ unsigned damerauLevenshtein(const char *str1,
     unsigned row, col;
 
     // create "dictionary"
-    unsigned *dict = calloc(alpha_size, sizeof(unsigned));
+    unsigned *dict = calloc(ALPHA_SIZE, sizeof(unsigned));
 
-    size_t m_rows = str1_len + 2;     // matrix rows
-    size_t m_cols = str2_len + 2;     // matrix cols
+    size_t m_rows = str1_len + 2; // matrix rows
+    size_t m_cols = str2_len + 2; // matrix cols
 
     // matrix to hold computed values
     unsigned **matrix = malloc(m_rows * sizeof(unsigned *));
     for (unsigned i = 0; i < m_rows; i++)
         matrix[i] = calloc(m_cols, sizeof(unsigned));
 
-    print_matrix(matrix, m_rows, m_cols);
+    // print_matrix(matrix, m_rows, m_cols);
 
     // set all the starting values and add all characters to the dict
     matrix[0][0] = INFINITY;
-    for (row = 1; row < m_rows; row++) {
+    for (row = 1; row < m_rows; row++)
+    {
         matrix[row][0] = INFINITY;
         matrix[row][1] = row - 1;
     }
-    for (col = 1; col < m_cols; col++) {
+    for (col = 1; col < m_cols; col++)
+    {
         matrix[0][col] = INFINITY;
         matrix[1][col] = col - 1;
     }
 
-    print_matrix(matrix, m_rows, m_cols);
+    // print_matrix(matrix, m_rows, m_cols);
 
-    unsigned db;    // no idea what this is
-    unsigned i, k;  // also no idea what these are
+    unsigned db;   // no idea what this is
+    unsigned i, k; // also no idea what these are
     unsigned cost;
 
     // fill in the matrix
-    for (row = 1; row <= str1_len; row++) {
+    for (row = 1; row <= str1_len; row++)
+    {
         db = 0;
 
-        for (col = 1; col <= str2_len; col++) {
-            i = dict[(unsigned) str2[col - 1]];
+        for (col = 1; col <= str2_len; col++)
+        {
+            i = dict[(unsigned)str2[col - 1]];
             k = db;
             cost = EQ(str1[row - 1], str2[col - 1]) ? 0 : 1;
 
             if (cost == 0)
                 db = col;
 
-            matrix[row + 1][col + 1] = MIN4(
-                matrix[row][col] + cost,
-                matrix[row + 1][col] + 1,
-                matrix[row][col + 1] + 1,
-                matrix[i][k] + (row - i - 1) + (col - k - 1) + 1
-            );
+            matrix[row + 1][col + 1] =
+                MIN4(matrix[row][col] + cost, matrix[row + 1][col] + 1, matrix[row][col + 1] + 1,
+                     matrix[i][k] + (row - i - 1) + (col - k - 1) + 1);
 
-            print_matrix(matrix, m_rows, m_cols);
+            // print_matrix(matrix, m_rows, m_cols);
         }
 
-        dict[(unsigned) str1[row - 1]] = row;
+        dict[(unsigned)str1[row - 1]] = row;
     }
 
     unsigned result = matrix[m_rows - 1][m_cols - 1];
@@ -110,24 +109,4 @@ unsigned damerauLevenshtein(const char *str1,
     free(matrix);
 
     return result;
-}
-
-#include <stdio.h>
-
-static void print_matrix(unsigned **matrix, size_t m_rows, size_t m_cols)
-{
-	// Actually don't know if DEBUG is correct but im not worrying about it now
-#ifndef DEBUG
-	return;
-#else
-    unsigned i, k;
-
-    for (i = 0; i < m_rows; i++) {
-        for (k = 0; k < m_cols; k++) {
-            printf("%02d ", matrix[i][k]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-#endif
 }

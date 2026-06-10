@@ -4,27 +4,25 @@
 
 #include "obj_manipulation.h"
 
-charArray splitToSegments(size_t inputCount, char** inputArray)
+charArray split_to_segments(size_t input_count, char **input_array)
 {
-	charArray splitArray = {
-		.array = NULL,
-		.count = 0
-	};
+    charArray split_array = {.array = NULL, .count = 0};
 
-	for (size_t i = 0; i < inputCount; i++)
-	{
-		char* str = strdup(inputArray[i]);
-		char* token = strtok(str, "/");
+    for (size_t i = 0; i < input_count; i++)
+    {
+        char *str = strdup(input_array[i]);
+        char *token = strtok(str, "/");
 
-		while (token != NULL)
-		{
-			splitArray.array = realloc(splitArray.array, (splitArray.count + 1) * sizeof(char*));
-			splitArray.array[splitArray.count] = strdup(token);
-			splitArray.count++;
-			token = strtok(NULL, "/");
-		}
-		free(str);
-	}
+        while (token != NULL)
+        {
+            split_array.array =
+                realloc(split_array.array, (split_array.count + 1) * sizeof(char *));
+            split_array.array[split_array.count] = strdup(token);
+            split_array.count++;
+            token = strtok(NULL, "/");
+        }
+        free(str);
+    }
 
-	return splitArray;
+    return split_array;
 }

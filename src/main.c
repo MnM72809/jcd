@@ -13,7 +13,9 @@
 
 #define ALLOWED_SCORE_DIVISOR 3
 
-void addToPath(char *path, char *s)
+char *back_str = "..";
+
+void add_to_path(char *path, char *s)
 {
     strncat(path, "/", PATH_MAX - strlen(path) - 1);
     strncat(path, s, PATH_MAX - strlen(path) - 1);
@@ -35,7 +37,7 @@ void run(int argc, char *argv[], char path[])
     }
 
     // Exclude the program name from splitArray
-    charArray splitArray = splitToSegments(argc - 2, &argv[2]);
+    charArray split_array = split_to_segments(argc - 2, &argv[2]);
 
     if (relative)
     {
@@ -53,18 +55,18 @@ void run(int argc, char *argv[], char path[])
     }
 
     // transform splitArray to lowercase
-    for (int i = 0; i < splitArray.count; i++)
+    for (int i = 0; i < split_array.count; i++)
     {
-        for (int j = 0; j < strlen(splitArray.array[i]); j++)
-            splitArray.array[i][j] = tolower(splitArray.array[i][j]);
+        for (int j = 0; j < strlen(split_array.array[i]); j++)
+            split_array.array[i][j] = tolower(split_array.array[i][j]);
     }
 
     // Loop through inputs
-    for (int i = 0; i < splitArray.count; i++)
+    for (int i = 0; i < split_array.count; i++)
     {
-        if (strcmp(splitArray.array[i], "..") == 0)
+        if (strcmp(split_array.array[i], back_str) == 0)
         {
-            addToPath(path, "..");
+            add_to_path(path, "..");
             continue; // Don't interpret "..", just add it
         }
 
@@ -104,7 +106,7 @@ void run(int argc, char *argv[], char path[])
             }
 
             // Store the entry's score
-            scores[j] = damerauLevenshtein(lowercase, splitArray.array[i], 256);
+            scores[j] = damerau_levenshtein(lowercase, split_array.array[i], 256);
         }
 
         unsigned lowest = -1; // underflow uint
@@ -121,8 +123,8 @@ void run(int argc, char *argv[], char path[])
         if (lowest == -1 ||
             lowest > (strlen(namelist[lowest_index]->d_name) / ALLOWED_SCORE_DIVISOR))
         {
-            fprintf(stderr, "jcd: no match found for %s, stopping at:\n%s\n", splitArray.array[i],
-                    path);
+            fprintf(stderr, "jcd: no match found for \"%s\", stopping at:\n%s\n",
+                    split_array.array[i], path);
             for (int j = 0; j < n; j++)
             {
                 free(namelist[j]);
@@ -132,7 +134,7 @@ void run(int argc, char *argv[], char path[])
             break;
         }
         else
-            addToPath(path, namelist[lowest_index]->d_name);
+            add_to_path(path, namelist[lowest_index]->d_name);
 
         /*printf("-> Lowest score: %u, value: %s\n", lowest, namelist[lowest_index]->d_name);*/
 
@@ -144,11 +146,11 @@ void run(int argc, char *argv[], char path[])
         free(scores);
     }
 
-    for (int i = 0; i < splitArray.count; i++)
+    for (int i = 0; i < split_array.count; i++)
     {
-        free(splitArray.array[i]);
+        free(split_array.array[i]);
     }
-    free(splitArray.array);
+    free(split_array.array);
 
     return;
 }
@@ -166,7 +168,6 @@ int main(int argc, char *argv[])
         printf("  version  Print version information and exit.\n");
         printf(
             "  init     Print shell function initialization logic (use: 'eval \"$(jcd init)\")\n");
-        /*printf("  cd       Print directory to change to (used for shell function)\n");*/
         exit(0);
     }
 
@@ -178,7 +179,7 @@ int main(int argc, char *argv[])
 
     if (strcmp(argv[1], "version") == 0)
     {
-        printf("Version: 1.0.1\n");
+        printf("Version: 1.0.2\n");
         exit(0);
     }
 
@@ -192,6 +193,19 @@ int main(int argc, char *argv[])
     {
         printf("-\n");
         exit(0);
+    }
+
+    // Check env var options
+    char *back_str_env = getenv("JCD_BACK");
+    if (back_str_env != NULL && strlen(back_str_env) != 0)
+    {
+        // Check if back_str_env doesn't contain any spaces
+        if (strchr(back_str_env, ' ') != NULL)
+        {
+            fprintf(stderr, "Error: JCD_BACK cannot contain spaces.\n");
+            exit(1);
+        }
+        back_str = back_str_env;
     }
 
     char path[PATH_MAX];
