@@ -1,13 +1,10 @@
 # jcd - Fuzzy Directory Jumper
 
-<!-- Still a WIP but doesn't need to be explicitly said anymore because the basic features are there. -->
-<!-- > **⚠️ Work in Progress** - This project is still under active development. Features and APIs may change. -->
-
-A fast, lightweight C command-line tool for fuzzy directory navigation. Quickly jump to directories using partial, approximate directory names with intelligent fuzzy matching.
+A fast, lightweight C command-line tool for fuzzy directory navigation. Quickly traverse directories using partial, approximate directory names with intelligent fuzzy matching.
 
 ## Overview
 
-`jcd` helps you navigate directory hierarchies faster by allowing you to specify directory segments using fuzzy matching. Instead of typing full directory names, you can use abbreviated or slightly misspelled names, and `jcd` will find the best matching directory.
+`jcd` helps you navigate directory hierarchies faster by allowing you to specify directory segments using fuzzy matching. Instead of typing full directory names, you can use slightly misspelled names and `jcd` will find the best matching directory. If at any point it doesn't find a match anymore, `jcd` will stop there and navigate to the place where the error happened.
 
 The tool uses the **Damerau-Levenshtein** distance algorithm to intelligently match directory names, making it forgiving of typos and allowing quick navigation.
 
@@ -38,11 +35,27 @@ make
 ### Installation
 
 ```bash
+git clone https://github.com/MnM72809/jcd
+mkdir build
 cd build
+cmake ..
 make install
 ```
 
 This installs `jcd` to `/usr/local/bin` by default.
+
+<details>
+  <summary>Arch Linux</summary>
+  
+  ### Arch user repository
+
+  Arch users can install from the AUR. The package name is `jcd-git`.
+
+  ```bash
+  yay -S jcd-git
+  paru -S jcd-git # or using paru
+  ```
+</details>
 
 ## Usage
 
@@ -57,7 +70,7 @@ j <directory_segment> [additional_segments...]
 ```bash
 jcd version # Displays version
 jcd help # Prints help
-jcd init # Prints initialization logic (use: 'eval "$(jcd init)" in .bashrc, .zshrc, ...)
+jcd init # Prints initialization logic (use: 'eval "$(jcd init <init_options>)" in .bashrc, .zshrc, ...)
 ```
 
 ### Examples
@@ -75,13 +88,19 @@ j docuemnts    # Matches "Documents"
 j prgram       # Matches "program"
 ```
 
+### Init options
+
+- `-a <alias>` Alias to use instead of the default `j`
+- `-b <back_string>` Alternative string to use for navigating back (alongside `..`)
+- `-d <score_divisor_threshold>` Score divisor threshold for fuzzy matching (default: 3.0, higher = stricter)
+
 ### Output
 
-`j` prints the full matched directory path to stdout. This allows it to be used in shell aliases:
+`jcd cd` prints the full matched directory path to stdout. This allows it to be used in shell aliases:
 
 ```bash
 # Add to your shell config (~/.bashrc, ~/.zshrc, etc.)
-eval "$(jcd init)"
+eval "$(jcd init <init_options>)"
 
 # Usage
 j Documents  # Changes to the matching Documents directory
@@ -89,11 +108,12 @@ j Documents  # Changes to the matching Documents directory
 
 ## How It Works
 
-1. **Accepts Path Segments**: Takes directory names as command-line arguments
-2. **Scans Current Directory**: Lists all directories in the current path
-3. **Scores Matches**: Calculates Damerau-Levenshtein distance for each directory
-4. **Finds Best Match**: Selects the directory with the lowest distance score
-5. **Outputs Path**: Prints the full path to stdout for use in navigation
+1. **Accepts path segments**: Takes directory names as command-line arguments
+2. **Scans current directory**: Lists all directories in the current path
+3. **Scores matches**: Calculates Damerau-Levenshtein distance for each directory
+4. **Finds best match**: Selects the directory with the lowest distance score
+5. **Repeats for each segment**: Navigates into the matched directory and continues with the next segment
+5. **Outputs path**: Prints the full path to stdout for use in navigation
 
 ### Matching Algorithm
 
@@ -119,6 +139,11 @@ src/
 - **`damerauLevenshtein()`**: Fuzzy matching algorithm for directory names
 - **`splitToSegments()`**: Splits command-line arguments into directory segments
 - **Main Loop**: Iteratively navigates through directory segments using fuzzy matching
+
+## Credits
+
+[https://gist.github.com/Rostepher](https://gist.github.com/Rostepher):
+Damerau-Levenshtein algorithm adapted from: [https://gist.github.com/Rostepher/818fd0ce41d0c18154ae](https://gist.github.com/Rostepher/818fd0ce41d0c18154ae)
 
 ## License
 
