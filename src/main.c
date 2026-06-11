@@ -63,6 +63,8 @@ void run(int argc, char *argv[], char path[])
     // Loop through inputs
     for (int i = 0; i < split_array.count; i++)
     {
+        if (strcmp(split_array.array[i], ".") == 0)
+            continue; // Skip "."
         if (strcmp(split_array.array[i], back_str) == 0 || strcmp(split_array.array[i], "..") == 0)
         {
             add_to_path(path, "..");
