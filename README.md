@@ -14,7 +14,6 @@ The tool uses the **Damerau-Levenshtein** distance algorithm to intelligently ma
 - **Multiple Path Segments**: Navigate multiple directory levels at once
 - **Case-Insensitive**: Automatically handles case differences
 - **Lightweight**: Written in C for fast execution
-- **Smart Scoring**: Uses Damerau-Levenshtein distance for intelligent matching
 
 ## Building
 
