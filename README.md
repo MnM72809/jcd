@@ -2,6 +2,8 @@
 
 A fast, lightweight C command-line tool for fuzzy directory navigation. Quickly traverse directories using partial, approximate directory names with intelligent fuzzy matching.
 
+<img width="486" height="273" alt="rec_edited_3" src="https://github.com/user-attachments/assets/59647fc4-104a-42c7-9176-58115fbada5c" />
+
 ## Overview
 
 `jcd` helps you navigate directory hierarchies faster by allowing you to specify directory segments using fuzzy matching. Instead of typing full directory names, you can use slightly misspelled names and `jcd` will find the best matching directory. If at any point it doesn't find a match anymore, `jcd` will stop there and navigate to the place where the error happened.
