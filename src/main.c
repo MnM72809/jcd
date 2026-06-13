@@ -121,8 +121,8 @@ void run(int argc, char *argv[], char path[])
             }
         }
 
-        if (lowest == -1 || (double)lowest > ((double)strlen(namelist[lowest_index]->d_name) /
-                                              allowed_score_divisor))
+        int minimum_score = (double)strlen(namelist[lowest_index]->d_name) / allowed_score_divisor;
+        if (lowest == -1 || (double)lowest > minimum_score)
         {
             fprintf(stderr, "jcd: no match found for \"%s\", stopping at:\n%s\n",
                     split_array.array[i], path);
