@@ -12,10 +12,11 @@ The tool uses the **Damerau-Levenshtein** distance algorithm to intelligently ma
 
 ## Features
 
-- **Fuzzy Matching**: Find directories even with typos or partial names
-- **Multiple Path Segments**: Navigate multiple directory levels at once
-- **Case-Insensitive**: Automatically handles case differences
+- **Fuzzy matching**: Find directories even with typos or partial names
+- **Multiple path segments**: Navigate multiple directory levels at once
+- **Case-insensitive**: Automatically handles case differences
 - **Lightweight**: Written in C for fast execution
+- **Custom back keyword**: Choose your own keyword to navigate a directory level higher (',' in the example)
 
 ## Building
 
@@ -35,16 +36,6 @@ make
 
 ### Installation
 
-```bash
-git clone https://github.com/MnM72809/jcd
-mkdir build
-cd build
-cmake ..
-make install
-```
-
-This installs `jcd` to `/usr/local/bin` by default.
-
 <details>
   <summary>Arch Linux</summary>
   
@@ -58,12 +49,22 @@ This installs `jcd` to `/usr/local/bin` by default.
   ```
 </details>
 
+```bash
+git clone https://github.com/MnM72809/jcd
+mkdir build
+cd build
+cmake ..
+make install
+```
+
+This installs `jcd` to `/usr/local/bin` by default.
+
 ## Usage
 
 ### Basic Syntax
 
 ```bash
-j <directory_segment> [additional_segments...]
+j [directory_segments]
 ```
 
 ### Subcommands
@@ -87,6 +88,9 @@ j downloads/myproject # Same effect
 # Typo tolerance
 j docuemnts    # Matches "Documents"
 j prgram       # Matches "program"
+
+# Navigate to your Home directory
+j              # No arguments
 ```
 
 ### Init options
@@ -101,7 +105,7 @@ j prgram       # Matches "program"
 
 ```bash
 # Add to your shell config (~/.bashrc, ~/.zshrc, etc.)
-eval "$(jcd init <init_options>)"
+eval "$(jcd init [init_options])"
 
 # Usage
 j Documents  # Changes to the matching Documents directory
