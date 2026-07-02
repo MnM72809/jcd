@@ -17,7 +17,7 @@ install(TARGETS jcd DESTINATION bin)
 # Must be at the very end of CMakeLists.txt
 set(CPACK_PACKAGE_NAME "jcd")
 set(CPACK_PACKAGE_VENDOR "moriaan")
-set(CPACK_PACKAGE_VERSION "1.0.3")
+set(CPACK_PACKAGE_VERSION "1.0.4")
 set(CPACK_PACKAGE_CONTACT "moriaan.michiels@gmail.com") 
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
 set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")

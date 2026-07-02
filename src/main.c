@@ -5,22 +5,49 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "algorithms.h"
 #include "init.h"
 #include "obj_manipulation.h"
 
-double allowed_score_divisor = 3;
+char path[PATH_MAX];
+double allowed_score_divisor = 2.0;
 char *back_str = "..";
 
-void add_to_path(char *path, char *s)
+void add_to_path(char *current_path, char *s)
 {
-    strncat(path, "/", PATH_MAX - strlen(path) - 1);
-    strncat(path, s, PATH_MAX - strlen(path) - 1);
+    strncat(current_path, "/", PATH_MAX - strlen(current_path) - 1);
+    strncat(current_path, s, PATH_MAX - strlen(current_path) - 1);
 }
 
-void run(int argc, char *argv[], char path[])
+int dir_filter(const struct dirent *entry)
+{
+    if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, ".") == 0)
+        return 0;
+    if (entry->d_type != DT_UNKNOWN)
+    {
+        if (entry->d_type == DT_DIR)
+            return 1;
+        if (entry->d_type != DT_LNK)
+            return 0; // Fall back to stat logic if symlink
+    }
+
+    char full_path[PATH_MAX];
+    snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
+
+    struct stat st;
+    if (stat(full_path, &st) == 0)
+    {
+        return S_ISDIR(st.st_mode);
+    }
+
+    fprintf(stderr, "Error: Could not stat %s\nStopping at %s\n", full_path, path);
+    return 0;
+}
+
+void run(int argc, char *argv[])
 {
     // Print the home dir when no arguments are given
     if (argc == 2)
@@ -35,7 +62,7 @@ void run(int argc, char *argv[], char path[])
         relative = false;
     }
 
-    // Exclude the program name from splitArray
+    // Exclude the program name from split_array
     charArray split_array = split_to_segments(argc - 2, &argv[2]);
 
     if (relative)
@@ -74,8 +101,7 @@ void run(int argc, char *argv[], char path[])
         struct dirent **namelist;
         int n;
 
-        n = scandir(path, &namelist, NULL,
-                    NULL); // not using alphasort because the list doesn't need to be sorted
+        n = scandir(path, &namelist, dir_filter, NULL);
         if (n < 0)
         {
             perror("scandir");
@@ -92,11 +118,6 @@ void run(int argc, char *argv[], char path[])
                n * sizeof(unsigned)); // memset is safe here cause -1 is 0xFF.. something (UINT_MAX)
         for (int j = 0; j < n; j++)
         {
-            if (strcmp(namelist[j]->d_name, ".") == 0)
-                continue; // Skip "."
-            if (namelist[j]->d_type != DT_DIR)
-                continue; // Skip non-directories
-
             // Convert to lowercase
             int lower_length = strlen(namelist[j]->d_name);
             char lowercase[lower_length + 1];
@@ -190,7 +211,7 @@ int main(int argc, char *argv[])
 
     if (strcmp(argv[1], "version") == 0)
     {
-        printf("Version: 1.0.3\n");
+        printf("Version: 1.0.4\n");
         exit(0);
     }
 
@@ -233,7 +254,6 @@ int main(int argc, char *argv[])
         allowed_score_divisor = val;
     }
 
-    char path[PATH_MAX];
-    run(argc, argv, path);
+    run(argc, argv);
     printf("%s\n", path);
 }
