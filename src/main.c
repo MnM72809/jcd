@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <dirent.h>
+#include <errno.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -24,7 +25,7 @@ void add_to_path(char *current_path, char *s)
 
 int dir_filter(const struct dirent *entry)
 {
-    if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, ".") == 0)
+    if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
         return 0;
     if (entry->d_type != DT_UNKNOWN)
     {
@@ -42,6 +43,9 @@ int dir_filter(const struct dirent *entry)
     {
         return S_ISDIR(st.st_mode);
     }
+
+    if (errno == ENOENT)
+        return 0;
 
     fprintf(stderr, "Error: Could not stat %s\nStopping at %s\n", full_path, path);
     return 0;
