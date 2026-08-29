@@ -17,6 +17,11 @@ charArray split_to_segments(size_t input_count, char **input_array)
         {
             split_array.array =
                 realloc(split_array.array, (split_array.count + 1) * sizeof(char *));
+            if (split_array.array == NULL)
+            {
+                perror("Failed to allocate memory");
+                exit(1);
+            }
             split_array.array[split_array.count] = strdup(token);
             split_array.count++;
             token = strtok(NULL, "/");

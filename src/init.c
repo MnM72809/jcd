@@ -12,7 +12,7 @@ char *add_env_var(char *env_vars, const char *prefix, char *value, const char SU
     char *tmp = realloc(env_vars, cur + add + 1);
     if (!tmp)
     {
-        perror("realloc");
+        perror("Failed to allocate memory");
         free(env_vars);
         exit(1);
     }
@@ -37,7 +37,7 @@ void init(int argc, char *argv[])
                 break;
             case 'b': // Back str
             {
-                const char *prefix = "\n  export JCD_BACK=\"";
+                const char *prefix = "export JCD_BACK=\"";
                 const char SUFFIX = '\"';
                 env_vars = add_env_var(env_vars, prefix, optarg, SUFFIX);
                 break;
@@ -52,7 +52,7 @@ void init(int argc, char *argv[])
                     fprintf(stderr, "jcd: Invalid value for -d: \"%s\". Using default.\n", optarg);
                     break;
                 }
-                const char *prefix = "\n  export JCD_ALLOWED_SCORE_DIVISOR=\"";
+                const char *prefix = "\nexport JCD_ALLOWED_SCORE_DIVISOR=\"";
                 const char SUFFIX = '\"';
                 env_vars = add_env_var(env_vars, prefix, optarg, SUFFIX);
                 break;
@@ -64,19 +64,25 @@ void init(int argc, char *argv[])
         }
     }
 
-    printf("%s() {\n"
+    printf("%s\n"
+           "%s() {\n"
            "  if ! command -v jcd >/dev/null 2>&1; then\n"
            "    echo \"error: 'jcd' binary not found in PATH.\" >&2\n"
            "    return 1\n"
-           "  fi"
-           "%s\n"
+           "  fi\n"
            "  local target_dir\n"
            "  target_dir=$(jcd cd \"$@\")\n"
-           "  if [ $? -eq 0 ] && [ -n \"$target_dir\" ]; then\n"
+           "  if [ $? -eq 0 ] && [ -d \"$target_dir\" ]; then\n"
            "    builtin cd \"$target_dir\"\n"
            "  fi\n"
-           "}\n",
-           alias, env_vars ? env_vars : "\n");
+           "}\n"
+           "\n"
+           "if [ -n \"$ZSH_VERSION\" ]; then\n"
+           "  compdef _directories %s\n"
+           "elif [ -n \"$BASH_VERSION\" ]; then\n"
+           "  complete -d %s\n"
+           "fi\n",
+           env_vars ? env_vars : "", alias, alias, alias);
 
     if (env_vars)
         free(env_vars);

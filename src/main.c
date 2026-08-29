@@ -19,8 +19,12 @@ char *back_str = "..";
 
 void add_to_path(char *current_path, char *s)
 {
-    strncat(current_path, "/", PATH_MAX - strlen(current_path) - 1);
-    strncat(current_path, s, PATH_MAX - strlen(current_path) - 1);
+    size_t len = strlen(current_path);
+    if (len > 0 && current_path[len - 1] != '/')
+    {
+        strncat(current_path, "/", PATH_MAX - len - 1);
+    }
+    strncat(current_path, s, PATH_MAX - len - 1);
 }
 
 int dir_filter(const struct dirent *entry)
@@ -87,7 +91,8 @@ void run(int argc, char *argv[])
     // transform splitArray to lowercase
     for (int i = 0; i < split_array.count; i++)
     {
-        for (int j = 0; j < strlen(split_array.array[i]); j++)
+        size_t len = strlen(split_array.array[i]);
+        for (int j = 0; j < len; j++)
             split_array.array[i][j] = tolower(split_array.array[i][j]);
     }
 
@@ -112,19 +117,34 @@ void run(int argc, char *argv[])
             exit(1);
         }
 
+        if (n == 0)
+        {
+            fprintf(stderr, "jcd: no directories found in:\n%s\n", path);
+            free(namelist);
+            break;
+        }
+
         unsigned *scores = malloc(n * sizeof(unsigned));
         if (scores == NULL)
         {
             perror("Failed to allocate memory");
             exit(1);
         }
-        memset(scores, -1,
-               n * sizeof(unsigned)); // memset is safe here cause -1 is 0xFF.. something (UINT_MAX)
+        memset(scores, UINT_MAX, n * sizeof(unsigned));
+
         for (int j = 0; j < n; j++)
         {
             // Convert to lowercase
             int lower_length = strlen(namelist[j]->d_name);
-            char lowercase[lower_length + 1];
+            if (lower_length >= 256)
+            {
+                lower_length = 255;
+                fprintf(stderr,
+                        "Warning: Directory name \"%s\" is too long, truncating to 255 "
+                        "characters.\n",
+                        namelist[j]->d_name);
+            }
+            char lowercase[256];
             lowercase[lower_length] = '\0';
             for (int k = 0; k < lower_length; k++)
             {
@@ -135,8 +155,8 @@ void run(int argc, char *argv[])
             scores[j] = damerau_levenshtein(lowercase, split_array.array[i], 256);
         }
 
-        unsigned lowest = -1; // underflow uint
-        int lowest_index = -1;
+        unsigned lowest = UINT_MAX;
+        int lowest_index = 0;
         for (int j = 0; j < n; j++)
         {
             if (scores[j] < lowest)
@@ -147,7 +167,7 @@ void run(int argc, char *argv[])
         }
 
         int minimum_score = (double)strlen(namelist[lowest_index]->d_name) / allowed_score_divisor;
-        if (lowest == -1 || (double)lowest > minimum_score)
+        if (lowest == UINT_MAX || (double)lowest > minimum_score)
         {
             fprintf(stderr, "jcd: no match found for \"%s\", stopping at:\n%s\n",
                     split_array.array[i], path);
@@ -161,8 +181,6 @@ void run(int argc, char *argv[])
         }
         else
             add_to_path(path, namelist[lowest_index]->d_name);
-
-        /*printf("-> Lowest score: %u, value: %s\n", lowest, namelist[lowest_index]->d_name);*/
 
         for (int j = 0; j < n; j++)
         {
@@ -200,8 +218,10 @@ int main(int argc, char *argv[])
         printf("  -a <alias>    Set the shell function name (default: j).\n");
         printf("  -b <backstr>  Set string to use as an alias for \"..\"\n");
         printf("                to navigate one directory level up.\n");
-        printf("  -d <divisor>  Set the divisor for the allowed score threshold (default: 3.0).\n");
-        printf(" 			    A lower divisor means stricter matching, a higher divisor means\n");
+        printf("  -d <divisor>  Set the divisor for the allowed score threshold "
+               "(default: 3.0).\n");
+        printf(" 			    A lower divisor means stricter matching, a "
+               "higher divisor means\n");
         printf("                looser matching.\n");
         printf("\n");
         exit(0);
@@ -259,5 +279,6 @@ int main(int argc, char *argv[])
     }
 
     run(argc, argv);
+
     printf("%s\n", path);
 }

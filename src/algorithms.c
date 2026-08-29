@@ -1,9 +1,9 @@
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "algorithms.h"
-
 
 #define EQ(a, b) ((a) == (b))
 #define MIN(a, b) ((a) < (b)) ? (a) : (b)
@@ -44,14 +44,31 @@ unsigned damerau_levenshtein(const char *str1, const char *str2, const unsigned 
 
     // create "dictionary"
     unsigned *dict = calloc(ALPHA_SIZE, sizeof(unsigned));
+    if (dict == NULL)
+    {
+        perror("Failed to allocate memory");
+        exit(1);
+    }
 
     size_t m_rows = str1_len + 2; // matrix rows
     size_t m_cols = str2_len + 2; // matrix cols
 
     // matrix to hold computed values
     unsigned **matrix = malloc(m_rows * sizeof(unsigned *));
+    if (matrix == NULL)
+    {
+        perror("Failed to allocate memory");
+        exit(1);
+    }
     for (unsigned i = 0; i < m_rows; i++)
+    {
         matrix[i] = calloc(m_cols, sizeof(unsigned));
+        if (matrix[i] == NULL)
+        {
+            perror("Failed to allocate memory");
+            exit(1);
+        }
+    }
 
     // print_matrix(matrix, m_rows, m_cols);
 
