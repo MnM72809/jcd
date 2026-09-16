@@ -19,6 +19,23 @@ char *back_str = "..";
 
 void add_to_path(char *current_path, char *s)
 {
+    if (strcmp(s, "..") == 0)
+    {
+        if (strcmp(current_path, "/") != 0)
+        {
+            char *last_slash = strrchr(current_path, '/');
+            if (last_slash == current_path)
+            {
+                // If the last slash is the first character, we are at root
+                current_path[1] = '\0'; // Keep the root slash
+            }
+            else if (last_slash != NULL)
+            {
+                *last_slash = '\0'; // Remove the last directory from the path
+            }
+        }
+        return;
+    }
     size_t len = strlen(current_path);
     if (len > 0 && current_path[len - 1] != '/')
     {
@@ -39,6 +56,7 @@ int dir_filter(const struct dirent *entry)
             return 0; // Fall back to stat logic if symlink
     }
 
+    // entry type is DT_UNKNOWN or DT_LNK
     char full_path[PATH_MAX];
     snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
 
@@ -272,7 +290,8 @@ int main(int argc, char *argv[])
         double val = strtod(allowed_score_divisor_env, &endptr);
         if (*endptr != '\0' || val <= 0)
         {
-            fprintf(stderr, "Error: JCD_ALLOWED_SCORE_DIVISOR must be a positive number.\n");
+            fprintf(stderr, "Error: The environment variable JCD_ALLOWED_SCORE_DIVISOR must be a "
+                            "positive number.\n");
             exit(1);
         }
         allowed_score_divisor = val;
