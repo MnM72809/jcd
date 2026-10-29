@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <limits.h>
+#include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,6 +74,20 @@ int dir_filter(const struct dirent *entry)
     return 0;
 }
 
+int is_valid_pwd(const char *pwd)
+{
+    if (pwd == NULL || *pwd == '\0')
+        return 0;
+    if (pwd[0] != '/')
+        return 0; // Not an absolute path
+    struct stat st;
+    if (stat(pwd, &st) != 0)
+        return 0; // Path does not exist
+    if (!S_ISDIR(st.st_mode))
+        return 0; // Not a directory
+    return 1;
+}
+
 void run(int argc, char *argv[])
 {
     // Print the home dir when no arguments are given
@@ -93,11 +108,22 @@ void run(int argc, char *argv[])
 
     if (relative)
     {
-        // Store cwd in path
-        if (getcwd(path, PATH_MAX) == NULL)
+        char *pwd = getenv("PWD");
+        if (is_valid_pwd(pwd))
         {
-            perror("getcwd() error");
-            exit(1);
+            snprintf(path, PATH_MAX, "%s", pwd);
+        }
+        else
+        {
+            fprintf(stderr,
+                    "jcd: Invalid PWD environment variable: %s\n"
+                    "Falling back to getcwd.",
+                    pwd);
+            if (getcwd(path, PATH_MAX) == NULL)
+            {
+                perror("getcwd error");
+                exit(1);
+            }
         }
     }
     else
