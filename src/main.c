@@ -17,6 +17,7 @@
 char path[PATH_MAX];
 double allowed_score_divisor = 2.0;
 char *back_str = "..";
+bool use_cwd = false;
 
 void add_to_path(char *current_path, char *s)
 {
@@ -70,7 +71,7 @@ int dir_filter(const struct dirent *entry)
     if (errno == ENOENT)
         return 0;
 
-    fprintf(stderr, "Error: Could not stat %s\nStopping at %s\n", full_path, path);
+    fprintf(stderr, "jcd: Error: Could not stat %s\nStopping at %s\n", full_path, path);
     return 0;
 }
 
@@ -109,16 +110,19 @@ void run(int argc, char *argv[])
     if (relative)
     {
         char *pwd = getenv("PWD");
-        if (is_valid_pwd(pwd))
+        if (!use_cwd && is_valid_pwd(pwd))
         {
             snprintf(path, PATH_MAX, "%s", pwd);
         }
         else
         {
-            fprintf(stderr,
-                    "jcd: Invalid PWD environment variable: %s\n"
-                    "Falling back to getcwd.",
-                    pwd);
+            if (use_cwd)
+            {
+                fprintf(stderr,
+                        "jcd: Invalid PWD environment variable: %s\n"
+                        "Falling back to getcwd.",
+                        pwd);
+            }
             if (getcwd(path, PATH_MAX) == NULL)
             {
                 perror("getcwd error");
@@ -184,8 +188,8 @@ void run(int argc, char *argv[])
             {
                 lower_length = 255;
                 fprintf(stderr,
-                        "Warning: Directory name \"%s\" is too long, truncating to 255 "
-                        "characters.\n",
+                        "jcd: Warning: Directory name \"%s\" is too long, "
+                        "truncating to 255 characters.\n",
                         namelist[j]->d_name);
             }
             char lowercase[256];
@@ -262,6 +266,8 @@ int main(int argc, char *argv[])
         printf("  -a <alias>    Set the shell function name (default: j).\n");
         printf("  -b <backstr>  Set string to use as an alias for \"..\"\n");
         printf("                to navigate one directory level up.\n");
+        printf("  -c            Use this option to strictly use the current process working "
+               "directory instead of the PWD environment variable.\n");
         printf("  -d <divisor>  Set the divisor for the allowed score threshold "
                "(default: 3.0).\n");
         printf(" 			    A lower divisor means stricter matching, a "
@@ -302,7 +308,7 @@ int main(int argc, char *argv[])
         // Check if back_str_env doesn't contain any spaces
         if (strchr(back_str_env, ' ') != NULL)
         {
-            fprintf(stderr, "Error: JCD_BACK cannot contain spaces.\n");
+            fprintf(stderr, "jcd: Error: JCD_BACK cannot contain spaces.\n");
             exit(1);
         }
         back_str = back_str_env;
@@ -316,11 +322,26 @@ int main(int argc, char *argv[])
         double val = strtod(allowed_score_divisor_env, &endptr);
         if (*endptr != '\0' || val <= 0)
         {
-            fprintf(stderr, "Error: The environment variable JCD_ALLOWED_SCORE_DIVISOR must be a "
-                            "positive number.\n");
+            fprintf(stderr,
+                    "jcd: Error: The environment variable JCD_ALLOWED_SCORE_DIVISOR must be a "
+                    "positive number.\n");
             exit(1);
         }
         allowed_score_divisor = val;
+    }
+
+    char *use_cwd_env = getenv("JCD_USE_CWD");
+    if (use_cwd_env != NULL && strlen(use_cwd_env) != 0)
+    {
+        if (strcmp(use_cwd_env, "true") == 0 || strcmp(use_cwd_env, "1") == 0)
+        {
+            use_cwd = true;
+        }
+        else if (strcmp(use_cwd_env, "false") != 0 && strcmp(use_cwd_env, "0") != 0)
+        {
+            fprintf(stderr, "jcd: Warning: The environment variable JCD_USE_CWD should be either "
+                            "\"true\" or \"false\". Defaulting to false.\n");
+        }
     }
 
     run(argc, argv);

@@ -28,7 +28,7 @@ void init(int argc, char *argv[])
     if (argc > 2)
     {
         int opt;
-        while ((opt = getopt(argc, argv, "a:b:d:")) != -1)
+        while ((opt = getopt(argc, argv, "a:b:cd:")) != -1)
         {
             switch (opt)
             {
@@ -37,9 +37,16 @@ void init(int argc, char *argv[])
                 break;
             case 'b': // Back str
             {
-                const char *prefix = "export JCD_BACK=\"";
+                const char *prefix = "\nexport JCD_BACK=\"";
                 const char SUFFIX = '\"';
                 env_vars = add_env_var(env_vars, prefix, optarg, SUFFIX);
+                break;
+            }
+            case 'c': // Use CWD
+            {
+                const char *prefix = "\nexport JCD_USE_CWD=\"1";
+                const char SUFFIX = '\"';
+                env_vars = add_env_var(env_vars, prefix, NULL, SUFFIX);
                 break;
             }
             case 'd': // Set allowed score divisor
