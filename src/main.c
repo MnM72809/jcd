@@ -116,7 +116,7 @@ void run(int argc, char *argv[])
         }
         else
         {
-            if (use_cwd)
+            if (!use_cwd)
             {
                 fprintf(stderr,
                         "jcd: Invalid PWD environment variable: %s\n"
