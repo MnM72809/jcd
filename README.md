@@ -97,6 +97,8 @@ j              # No arguments
 
 - `-a <alias>` Alias to use instead of the default `j`
 - `-b <back_string>` Alternative string to use for navigating back (alongside `..`)
+- `-c` When this flag is set, strictly use the current process working directory for relative paths,
+    instead of the default PWD environment variable. This will result in symlinks being resolved by default.
 - `-d <score_divisor_threshold>` Score divisor threshold for fuzzy matching (default: 3.0, higher = stricter)
 
 ### Output
