@@ -71,11 +71,15 @@ void init(int argc, char *argv[])
         }
     }
 
-    printf("%s\n"
+    printf("%s\n\n"
            "%s() {\n"
            "  if ! command -v jcd >/dev/null 2>&1; then\n"
            "    echo \"error: 'jcd' binary not found in PATH.\" >&2\n"
            "    return 1\n"
+           "  fi\n"
+           "  if [ \"$1\" = \"-\" ]; then\n"
+           "    builtin cd -\n"
+           "    return\n"
            "  fi\n"
            "  local target_dir\n"
            "  target_dir=$(jcd cd \"$@\")\n"

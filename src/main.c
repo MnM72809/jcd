@@ -297,6 +297,9 @@ int main(int argc, char *argv[])
 
     if (argc == 3 && strcmp(argv[2], "-") == 0)
     {
+        fprintf(stderr,
+                "jcd: Warning: The '-' argument is reserved for the shell function to go "
+                "to the previous directory. This is a bug, please create a new github issue.\n");
         printf("-\n");
         exit(0);
     }
